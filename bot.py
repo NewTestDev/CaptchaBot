@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 import os
+from flask import Flask
+import threading
 
 # Charger le fichier .env pour obtenir le token en toute sécurité
 load_dotenv()
@@ -14,6 +16,7 @@ if not TOKEN:
     print("❌ Token non trouvé. Assurez-vous que le fichier .env est présent et correctement configuré.")
     exit(1)  # Arrêter l'exécution du bot si le token est manquant
 
+# Configuration du bot Discord
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -60,6 +63,19 @@ async def on_ready():
 
     await channel.send(" ", view=BoutonAcces())  # Envoie le bouton si absent
     print("✅ Bouton envoyé dans le salon !")
+
+# Créer un serveur Flask pour maintenir le bot en ligne
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Bot is alive!"  # Une réponse simple pour prouver que ton bot est en vie
+
+def run_flask():
+    app.run(host="0.0.0.0", port=8080)  # Le port 8080 est utilisé par Render
+
+# Lancer Flask dans un thread séparé pour ne pas bloquer ton bot
+threading.Thread(target=run_flask, daemon=True).start()
 
 # Utiliser le token depuis .env
 bot.run(TOKEN)
